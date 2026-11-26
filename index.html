@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lapau Digital – VR Showroom UMKM Minang</title>
+<script src="vendor/aframe.min.js"></script>
+<script src="https://js.puter.com/v2/" async></script>
+<style>
+  :root{--merah:#8b1a1a;--emas:#e0a526;--hitam:#1d1512;--krem:#fff7e6}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif}
+  #hud{position:fixed;top:12px;left:12px;width:330px;max-height:calc(100vh - 24px);overflow:auto;z-index:10;
+       background:rgba(29,21,18,.92);color:var(--krem);border:2px solid var(--emas);border-radius:14px;padding:14px;font-size:14px;line-height:1.45}
+  #hud h2{margin:0 0 4px;font-size:17px;color:var(--emas)}
+  #hud .sub{font-size:12px;opacity:.8;margin-bottom:10px}
+  .card{background:rgba(255,247,230,.08);border-radius:10px;padding:10px;margin:8px 0}
+  .card b{color:var(--emas)}
+  .muted{opacity:.7;font-style:italic}
+  ul.check{list-style:none;padding:0;margin:6px 0}
+  ul.check li{margin:4px 0}
+  ul.check li.done::before{content:"✔ ";color:#7ee08a}
+  ul.check li:not(.done)::before{content:"○ ";color:#aaa}
+  button{font:inherit;cursor:pointer;border:none;border-radius:8px;padding:9px 12px;font-weight:600}
+  .btn-main{background:var(--emas);color:var(--hitam);width:100%;margin-top:6px}
+  .btn-main:disabled{background:#6b5a3a;color:#bbb;cursor:not-allowed}
+  .btn-sec{background:transparent;color:var(--emas);border:1px solid var(--emas);width:100%;margin-top:6px}
+  #toggle{position:fixed;top:12px;left:12px;z-index:11;display:none;background:var(--emas);color:var(--hitam)}
+  .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#2e5e3a;margin-left:4px}
+  .badge.off{background:#6b4a1a}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:20;display:flex;align-items:center;justify-content:center;padding:16px}
+  .modal{background:var(--krem);color:var(--hitam);max-width:620px;width:100%;max-height:90vh;overflow:auto;border-radius:16px;padding:22px;border-top:8px solid var(--merah)}
+  .modal h1{margin:0 0 6px;color:var(--merah);font-size:22px}
+  .modal h3{margin:14px 0 4px;color:var(--merah)}
+  .modal ol,.modal ul{padding-left:20px;margin:4px 0}
+  .modal .btn-main{font-size:16px;padding:12px}
+  .petatah{background:#fbe9c0;border-left:4px solid var(--emas);padding:8px 12px;border-radius:6px;font-style:italic;margin:10px 0}
+  .score{font-size:40px;font-weight:800;color:var(--merah)}
+  .bar{height:10px;background:#e8d8b8;border-radius:6px;overflow:hidden;margin:2px 0 8px}
+  .bar>div{height:100%;background:var(--merah)}
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--hitam);color:var(--krem);padding:10px 16px;border-radius:10px;z-index:30;display:none;border:1px solid var(--emas);max-width:90vw;text-align:center}
+  @media (max-width:700px){#hud{width:calc(100vw - 24px);max-height:45vh;font-size:13px}#toggle{display:block}#hud.hide{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ============ INTRO ============ -->
+<div class="overlay" id="intro">
+  <div class="modal">
+    <h1>Lapau Digital</h1>
+    <div><b>VR Showroom UMKM Minang</b> · Media pembelajaran interaktif MK Bisnis Digital</div>
+    <div class="petatah">"Alam takambang jadi guru" — alam yang terbentang menjadi guru.<br>
+      Di lapau ini, Saudara belajar dengan <b>mengamati pembeli</b> lebih dulu, lalu mengambil keputusan dagang.</div>
+    <h3>Tujuan Pembelajaran</h3>
+    <ul>
+      <li>Menganalisis kebutuhan segmen pembeli dari perilaku yang diamati.</li>
+      <li>Menerapkan <i>visual merchandising</i>, strategi harga, dan <i>personal selling</i> yang sesuai segmen.</li>
+      <li>Mengevaluasi keputusan berdasarkan umpan balik.</li>
+    </ul>
+    <h3>Cara Bermain (±5 menit per ronde, disarankan 3 ronde)</h3>
+    <ol>
+      <li><b>Amati pembeli</b>: klik tokoh pembeli untuk melihat profil dan perilakunya.</li>
+      <li><b>Tata etalase</b>: klik 2 produk di rak stok untuk dipindah ke etalase utama.</li>
+      <li><b>Tentukan harga</b>: pilih strategi harga di papan kanan.</li>
+      <li><b>Sapa pembeli</b>: pilih kalimat sapaan di meja kasir kiri.</li>
+      <li>Klik <b>Evaluasi Keputusan</b> untuk mendapat skor dan umpan balik.</li>
+    </ol>
+    <p style="font-size:13px">Kontrol: seret layar untuk melihat sekeliling, tombol W/A/S/D untuk berjalan (laptop), klik/tap objek untuk berinteraksi. Pada headset VR, gunakan laser controller.
+    Pembeli dibuat oleh <b>Generative AI</b>, sehingga setiap ronde berbeda. Saat pertama kali, mungkin muncul jendela login Puter (gratis) untuk mengaktifkan AI.</p>
+    <button class="btn-main" id="btnStart">Masuk ke Lapau</button>
+  </div>
+</div>
+
+<!-- ============ HUD ============ -->
+<button id="toggle" onclick="document.getElementById('hud').classList.toggle('hide')">☰ Panel</button>
+<div id="hud">
+  <h2>Lapau Digital <span id="aiBadge" class="badge off">AI: menyiapkan…</span></h2>
+  <div class="sub">Ronde <span id="round">1</span> · <span id="hist">belum ada skor</span></div>
+  <div class="card" id="personaCard"><span class="muted">Menunggu pembeli datang…</span></div>
+  <div class="card">
+    <b>Langkah</b>
+    <ul class="check">
+      <li id="c0">Amati pembeli (klik tokohnya)</li>
+      <li id="c1">Tata etalase: <span id="v1">0/2 produk</span></li>
+      <li id="c2">Strategi harga: <span id="v2">-</span></li>
+      <li id="c3">Sapaan: <span id="v3">-</span></li>
+    </ul>
+    <button class="btn-main" id="btnEval" disabled>Evaluasi Keputusan</button>
+    <button class="btn-sec" id="btnNew">Pembeli Baru (AI)</button>
+    <button class="btn-sec" onclick="location.href='ar.html'">Mode AR: Foto Produk →</button>
+  </div>
+  <div style="font-size:11px;opacity:.6">Harga produk bersifat ilustratif untuk latihan.</div>
+</div>
+
+<!-- ============ FEEDBACK ============ -->
+<div class="overlay" id="fb" style="display:none">
+  <div class="modal" id="fbBody"></div>
+</div>
+<div id="toast"></div>
+
+<!-- ============ SCENE ============ -->
+<a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable" renderer="antialias:true; colorManagement:true" vr-mode-ui="enabled:true">
+  <a-sky color="#f3d9a4"></a-sky>
+  <a-entity light="type:ambient; intensity:0.75; color:#fff3dc"></a-entity>
+  <a-entity light="type:directional; intensity:0.8" position="2 6 4"></a-entity>
+  <a-entity light="type:point; intensity:0.6; distance:8; color:#ffd27a" position="0 2.8 -1"></a-entity>
+
+  <!-- Lantai kayu + karpet motif songket -->
+  <a-plane rotation="-90 0 0" width="14" height="14" color="#8a5a32"></a-plane>
+  <a-plane rotation="-90 0 0" position="0 0.01 -0.6" width="3.2" height="4.4" color="#7a1020"></a-plane>
+  <a-plane rotation="-90 0 0" position="0 0.012 -0.6" width="3.2" height="0.08" color="#e0a526"></a-plane>
+  <a-plane rotation="-90 0 0" position="0 0.012 0.6" width="3.2" height="0.08" color="#e0a526"></a-plane>
+  <a-plane rotation="-90 0 0" position="0 0.012 -1.8" width="3.2" height="0.08" color="#e0a526"></a-plane>
+
+  <!-- Fasad Rumah Gadang -->
+  <a-entity position="0 0 -4.2">
+    <a-box position="0 1.3 0" width="7" height="2.6" depth="0.3" color="#6e1b14"></a-box>
+    <a-box position="0 0.35 0.17" width="7" height="0.12" depth="0.05" color="#e0a526"></a-box>
+    <a-box position="0 2.45 0.17" width="7" height="0.12" depth="0.05" color="#e0a526"></a-box>
+    <a-box position="0 1.95 0.17" width="7" height="0.05" depth="0.05" color="#1d1512"></a-box>
+    <!-- ukiran sederhana -->
+    <a-entity id="ukiran"></a-entity>
+    <!-- atap bagonjong -->
+    <a-box position="-1.85 3.05 0" rotation="0 0 14" width="4" height="0.22" depth="1.2" color="#2a1d17"></a-box>
+    <a-box position="1.85 3.05 0" rotation="0 0 -14" width="4" height="0.22" depth="1.2" color="#2a1d17"></a-box>
+    <a-cone position="-3.75 3.75 0" rotation="0 0 32" radius-bottom="0.2" radius-top="0.01" height="1.3" color="#2a1d17"></a-cone>
+    <a-cone position="3.75 3.75 0" rotation="0 0 -32" radius-bottom="0.2" radius-top="0.01" height="1.3" color="#2a1d17"></a-cone>
+    <a-box position="0 2.75 0" width="1.2" height="0.25" depth="1.2" color="#2a1d17"></a-box>
+    <a-text value="LAPAU DIGITAL" position="0 2.2 0.2" align="center" color="#e0a526" width="6"></a-text>
+    <a-text value="Oleh-oleh Khas Minangkabau" position="0 1.75 0.2" align="center" color="#fff7e6" width="4"></a-text>
+  </a-entity>
+
+  <!-- Rak stok -->
+  <a-entity position="0 0 -2.7">
+    <a-box position="0 0.45 0" width="3.4" height="0.9" depth="0.6" color="#5b3a22"></a-box>
+    <a-box position="0 0.92 0" width="3.5" height="0.05" depth="0.65" color="#e0a526"></a-box>
+    <a-text value="RAK STOK  -  klik produk untuk dipajang di etalase" position="0 0.6 0.31" align="center" color="#fff7e6" width="2.6"></a-text>
+  </a-entity>
+
+  <!-- Etalase utama -->
+  <a-entity position="0 0 -0.9">
+    <a-box position="0 0.6 0" width="1.8" height="1.2" depth="0.6" color="#3b2418"></a-box>
+    <a-box position="0 1.22 0" width="1.9" height="0.05" depth="0.65" color="#e0a526"></a-box>
+    <a-ring position="-0.45 1.255 0" rotation="-90 0 0" radius-inner="0.2" radius-outer="0.24" color="#e0a526"></a-ring>
+    <a-ring position="0.45 1.255 0" rotation="-90 0 0" radius-inner="0.2" radius-outer="0.24" color="#e0a526"></a-ring>
+    <a-text value="ETALASE UTAMA (2 slot, setinggi mata pembeli)" position="0 0.85 0.31" align="center" color="#e0a526" width="2"></a-text>
+  </a-entity>
+
+  <!-- Produk (dibangun lewat JS) -->
+  <a-entity id="products"></a-entity>
+
+  <!-- Papan strategi harga -->
+  <a-entity position="2.3 0 -1.3" rotation="0 -35 0">
+    <a-box position="0 0.75 0" width="0.08" height="1.5" depth="0.08" color="#3b2418"></a-box>
+    <a-plane position="0 1.75 0.05" width="1.7" height="1.35" color="#1d1512"></a-plane>
+    <a-text value="STRATEGI HARGA" position="0 2.28 0.06" align="center" color="#e0a526" width="2.4"></a-text>
+    <a-entity id="priceBtns" position="0 1.95 0.07"></a-entity>
+  </a-entity>
+
+  <!-- Meja kasir & sapaan -->
+  <a-entity position="-2.3 0 -1.3" rotation="0 35 0">
+    <a-box position="0 0.5 0" width="1.6" height="1" depth="0.6" color="#5b3a22"></a-box>
+    <a-box position="0 1.02 0" width="1.7" height="0.05" depth="0.65" color="#e0a526"></a-box>
+    <a-plane position="0 1.85 0" width="1.9" height="1.4" color="#1d1512"></a-plane>
+    <a-text value="SAPA PEMBELI" position="0 2.4 0.01" align="center" color="#e0a526" width="2.4"></a-text>
+    <a-entity id="pitchBtns" position="0 2.08 0.02"></a-entity>
+  </a-entity>
+
+  <!-- Pembeli -->
+  <a-entity id="buyer" position="1.6 0 -0.1" rotation="0 -30 0">
+    <a-cylinder class="clickable" id="buyerBody" position="0 0.75 0" radius="0.22" height="1.1" color="#2e6b8a"></a-cylinder>
+    <a-sphere class="clickable" position="0 1.48 0" radius="0.2" color="#c98d63"></a-sphere>
+    <a-cylinder class="clickable" id="buyerHat" position="0 1.66 0" radius="0.17" height="0.08" color="#1d1512"></a-cylinder>
+    <a-entity animation="property: position; from:0 2.0 0; to:0 2.06 0; dir:alternate; loop:true; dur:900" position="0 2.0 0">
+      <a-plane class="clickable" width="1.6" height="0.42" color="#fff7e6" opacity="0.95"></a-plane>
+      <a-text id="bubble" value="..." align="center" color="#1d1512" width="1.5" wrap-count="34" position="0 0 0.01"></a-text>
+    </a-entity>
+    <a-text value="klik untuk mengamati" position="0 0.1 0.35" align="center" color="#fff7e6" width="1.4"></a-text>
+  </a-entity>
+
+  <!-- Tombol evaluasi 3D (untuk mode VR) -->
+  <a-entity position="0 1.8 -0.55">
+    <a-plane id="btnEval3d" class="clickable" width="0.9" height="0.18" color="#6b5a3a"></a-plane>
+    <a-text value="EVALUASI KEPUTUSAN" align="center" color="#fff7e6" width="1.2" position="0 0 0.01"></a-text>
+  </a-entity>
+
+  <!-- Kamera + kontroler VR -->
+  <a-entity id="rig" position="0 0 2.6">
+    <a-camera position="0 1.6 0" wasd-controls="acceleration:20"></a-camera>
+    <a-entity laser-controls="hand: right" raycaster="objects: .clickable; far: 10"></a-entity>
+    <a-entity laser-controls="hand: left" raycaster="objects: .clickable; far: 10"></a-entity>
+  </a-entity>
+</a-scene>
+
+<script>
+/* ================== DATA ================== */
+const PRODUCTS = {
+  rendang: {nama:"Rendang Daging", harga:"Rp85.000 / toples", ket:"tahan lama, cocok oleh-oleh jauh"},
+  balado:  {nama:"Keripik Balado", harga:"Rp30.000 / bungkus", ket:"camilan murah, laris untuk grosir"},
+  songket: {nama:"Kain Songket", harga:"Rp1.500.000 / helai", ket:"produk premium, kerajinan tenun"},
+  kawa:    {nama:"Kopi Kawa Daun", harga:"Rp35.000 / bungkus", ket:"minuman khas, punya cerita sejarah"}
+};
+const PRICES = {
+  normal:  {label:"Harga Normal", desc:"Pertahankan nilai produk"},
+  diskon:  {label:"Diskon 10%", desc:"Menarik pembeli sensitif harga"},
+  bundling:{label:"Paket Bundling", desc:"Gabungan produk, harga paket"}
+};
+const PITCHES = {
+  A:{short:"Tonjolkan kualitas", minang:"\"Iko asli buatan urang awak, tahan lamo dibawok jauah.\"", indo:"Ini asli buatan orang Minang, tahan lama dibawa jauh."},
+  B:{short:"Tawarkan harga grosir", minang:"\"Kalau ambiak banyak, ado harago khusus.\"", indo:"Kalau ambil banyak, ada harga khusus."},
+  C:{short:"Ajak mencoba & bercerita", minang:"\"Cubo lah dulu, Uda/Uni. Awak caritokan asa-usuanyo.\"", indo:"Silakan dicoba dulu. Saya ceritakan asal-usulnya."}
+};
+// Persona bawaan (dipakai bila GenAI tidak tersedia)
+const FALLBACK = [
+  {nama:"Bu Ratna",asal:"Perantau, tinggal di Jakarta",tujuan:"Oleh-oleh untuk keluarga dan rekan kantor sebelum kembali ke rantau",anggaran:"± Rp500.000",
+   perilaku:"Membolak-balik kemasan, bertanya apakah produk aman dibawa naik pesawat dan tahan berapa lama.",
+   kalimat:"Uni, ado nan tahan lamo? Ambo ka baliak ka Jakarta bisuak.",ideal_produk:["rendang","balado"],ideal_harga:"bundling",ideal_sapaan:"A",
+   alasan:"Perantau butuh produk tahan lama dalam jumlah banyak; paket bundling memudahkan dan menaikkan nilai transaksi."},
+  {nama:"Kenji",asal:"Wisatawan dari Jepang",tujuan:"Mencari barang yang mewakili budaya Minangkabau",anggaran:"Longgar",
+   perilaku:"Memotret fasad rumah gadang, lama memperhatikan motif kain, banyak bertanya tentang sejarah.",
+   kalimat:"Hello! What is the story behind this cloth?",ideal_produk:["songket","kawa"],ideal_harga:"normal",ideal_sapaan:"C",
+   alasan:"Wisatawan budaya menghargai cerita dan keaslian; produk premium tidak perlu didiskon."},
+  {nama:"Uda Fikri",asal:"Reseller toko online dari Pekanbaru",tujuan:"Belanja stok untuk dijual kembali",anggaran:"± Rp3.000.000",
+   perilaku:"Menghitung-hitung di ponsel, menanyakan harga per lusin dan stok yang tersedia.",
+   kalimat:"Ambo ka ambiak banyak, bara harago grosirnyo?",ideal_produk:["balado","rendang"],ideal_harga:"diskon",ideal_sapaan:"B",
+   alasan:"Reseller fokus pada margin; potongan harga volume dan produk cepat laku paling relevan."},
+  {nama:"Salsa",asal:"Mahasiswi rantau dari Bukittinggi",tujuan:"Camilan dan minuman untuk teman satu kos",anggaran:"± Rp100.000",
+   perilaku:"Langsung melihat label harga, membandingkan produk termurah, tertarik pada tester.",
+   kalimat:"Kak, ado nan murah tapi enak? Untuak kawan-kawan kos.",ideal_produk:["balado","kawa"],ideal_harga:"diskon",ideal_sapaan:"C",
+   alasan:"Pembeli dengan anggaran terbatas sensitif harga; tester mengurangi risiko mencoba produk."},
+  {nama:"Pak Hendra",asal:"Kepala kantor di Padang",tujuan:"Hadiah untuk tamu kantor dari luar daerah",anggaran:"± Rp5.000.000",
+   perilaku:"Bertanya tentang kemasan yang pantas untuk hadiah dan kesan eksklusif.",
+   kalimat:"Ado paket hadiah nan rancak untuak tamu kantua?",ideal_produk:["songket","rendang"],ideal_harga:"bundling",ideal_sapaan:"A",
+   alasan:"Pembeli korporat mengutamakan kesan dan kualitas; paket hadiah (bundling) sesuai kebutuhannya."},
+  {nama:"Keluarga Siregar",asal:"Wisatawan keluarga dari Medan",tujuan:"Mencicipi kuliner khas Minang bersama anak-anak",anggaran:"± Rp400.000",
+   perilaku:"Anak-anak penasaran dengan minuman di tempurung kelapa, orang tua ingin oleh-oleh praktis.",
+   kalimat:"Itu minuman apa di batok kelapa? Boleh coba?",ideal_produk:["rendang","kawa"],ideal_harga:"bundling",ideal_sapaan:"C",
+   alasan:"Wisatawan kuliner ingin pengalaman mencoba; paket keluarga memudahkan keputusan."}
+];
+const PETATAH = [
+  "\"Alam takambang jadi guru.\" Amati pembeli, lalu belajar dari perilakunya.",
+  "\"Dima bumi dipijak, di situ langik dijunjuang.\" Sesuaikan cara berdagang dengan pembeli yang dihadapi."
+];
+
+/* ================== STATE ================== */
+const S = {persona:null, observed:false, front:[], price:null, pitch:null, round:1, scores:[], aiOn:false, fbIdx:0};
+
+/* ================== UTIL ================== */
+const $ = id => document.getElementById(id);
+function toast(msg, ms=2600){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',ms);}
+function el(tag, attrs={}, parent){const e=document.createElement(tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function aiReady(){return typeof window.puter!=='undefined' && puter.ai && typeof puter.ai.chat==='function';}
+function aiText(r){ if(typeof r==='string')return r; const c=r&&r.message&&r.message.content;
+  if(Array.isArray(c))return c.map(x=>x.text||'').join(''); return c||String(r);}
+function extractJSON(t){const a=t.indexOf('{'),b=t.lastIndexOf('}'); if(a<0||b<=a)throw new Error('no json'); return JSON.parse(t.slice(a,b+1));}
+function withTimeout(p,ms){return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);}
+async function askAI(prompt){ if(!aiReady())throw new Error('AI tidak tersedia'); const r=await withTimeout(puter.ai.chat(prompt),30000); return aiText(r); }
+function setBadge(on,txt){const b=$('aiBadge');b.textContent=txt;b.className='badge'+(on?'':' off');}
+
+/* ================== BANGUN OBJEK 3D ================== */
+const STOCK_POS = {rendang:"-1.2 0.95 -2.7", balado:"-0.4 0.95 -2.7", songket:"0.4 0.95 -2.7", kawa:"1.2 0.95 -2.7"};
+const FRONT_POS = ["-0.45 1.25 -0.9","0.45 1.25 -0.9"];
+
+function buildProducts(){
+  const root=$('products');
+  const make = (id, build) => {
+    const g=el('a-entity',{id:'p-'+id,position:STOCK_POS[id],scale:'1.3 1.3 1.3','data-id':id},root);
+    build(g);
+    el('a-text',{value:PRODUCTS[id].nama,align:'center',color:'#fff7e6',width:'1.6',position:'0 -0.12 0.2'},g);
+    g.addEventListener('click',()=>onProduct(id));
+    return g;
+  };
+  make('rendang',g=>{
+    el('a-cylinder',{class:'clickable',radius:'0.13',height:'0.24',position:'0 0.12 0',color:'#d9e3e6',opacity:'0.6',transparent:'true'},g);
+    el('a-cylinder',{class:'clickable',radius:'0.12',height:'0.18',position:'0 0.1 0',color:'#55290f'},g);
+    el('a-cylinder',{class:'clickable',radius:'0.135',height:'0.05',position:'0 0.265 0',color:'#b3161b'},g);
+    el('a-cylinder',{class:'clickable',radius:'0.132',height:'0.06',position:'0 0.14 0',color:'#e0a526'},g);
+  });
+  make('balado',g=>{
+    el('a-box',{class:'clickable',width:'0.26',height:'0.36',depth:'0.1',position:'0 0.18 0',color:'#d1341a'},g);
+    el('a-box',{class:'clickable',width:'0.15',height:'0.13',depth:'0.102',position:'0 0.17 0',color:'#f2a531'},g);
+    el('a-box',{class:'clickable',width:'0.26',height:'0.04',depth:'0.102',position:'0 0.34 0',color:'#1d1512'},g);
+  });
+  make('songket',g=>{
+    el('a-box',{class:'clickable',width:'0.5',height:'0.1',depth:'0.34',position:'0 0.05 0',color:'#7a0e1f'},g);
+    [-0.1,0,0.1].forEach(z=>el('a-box',{class:'clickable',width:'0.505',height:'0.03',depth:'0.025',position:`0 0.09 ${z}`,color:'#e7b53a',metalness:'0.7',roughness:'0.3'},g));
+  });
+  make('kawa',g=>{
+    el('a-sphere',{class:'clickable',radius:'0.13','theta-start':'90','theta-length':'90',position:'0 0.17 0',color:'#5a3a1f',side:'double'},g);
+    el('a-cylinder',{class:'clickable',radius:'0.12',height:'0.01',position:'0 0.16 0',color:'#7a4f1a'},g);
+    el('a-cylinder',{class:'clickable',radius:'0.07',height:'0.05',position:'0 0.025 0',color:'#d9bf7a'},g);
+  });
+}
+function makeButton(parent, y, title, sub, onClick, w=1.5){
+  const g=el('a-entity',{position:`0 ${y} 0`},parent);
+  const p=el('a-plane',{class:'clickable',width:w,height:'0.3',color:'#3b2418'},g);
+  el('a-text',{value:title,align:'center',color:'#e0a526',width:'1.6',position:'0 0.06 0.01'},g);
+  el('a-text',{value:sub,align:'center',color:'#fff7e6',width:'1.05',position:'0 -0.07 0.01','wrap-count':'60'},g);
+  p.addEventListener('click',onClick);
+  return p;
+}
+const priceBtn={}, pitchBtn={};
+function buildBoards(){
+  let y=0; for(const k in PRICES){ priceBtn[k]=makeButton($('priceBtns'),y,PRICES[k].label,PRICES[k].desc,()=>onPrice(k)); y-=0.38; }
+  y=0; for(const k in PITCHES){ pitchBtn[k]=makeButton($('pitchBtns'),y,k+'. '+PITCHES[k].short,PITCHES[k].minang,()=>onPitch(k),1.75); y-=0.38; }
+}
+function buildUkiran(){ // pola segitiga pucuak rabuang sederhana
+  const u=$('ukiran');
+  for(let i=-3.2;i<=3.2;i+=0.4){
+    el('a-triangle',{position:`${i} 0.6 0.17`,'vertex-a':'0 0.18 0','vertex-b':'-0.15 -0.12 0','vertex-c':'0.15 -0.12 0',color:'#e0a526'},u);
+  }
+}
+
+/* ================== INTERAKSI ================== */
+function onProduct(id){
+  if(!S.persona){toast('Tunggu pembeli datang dulu.');return;}
+  const g=$('p-'+id);
+  const idx=S.front.indexOf(id);
+  if(idx>=0){ S.front.splice(idx,1); move(g,STOCK_POS[id]); }
+  else{
+    if(S.front.length>=2){toast('Etalase penuh. Klik produk di etalase untuk mengembalikannya ke rak.');return;}
+    S.front.push(id);
+  }
+  S.front.forEach((p,i)=>move($('p-'+p),FRONT_POS[i]));
+  update();
+}
+function move(g,pos){g.removeAttribute('animation');g.setAttribute('animation',{property:'position',to:pos,dur:600,easing:'easeInOutQuad'});}
+function onPrice(k){ if(!S.persona)return; S.price=k; for(const j in priceBtn)priceBtn[j].setAttribute('color',j===k?'#8b1a1a':'#3b2418'); update(); }
+function onPitch(k){ if(!S.persona)return; S.pitch=k; for(const j in pitchBtn)pitchBtn[j].setAttribute('color',j===k?'#8b1a1a':'#3b2418'); update(); }
+function onObserve(){
+  if(!S.persona)return;
+  S.observed=true; renderPersona(); update();
+  toast('Perilaku pembeli tercatat di panel. Alam takambang jadi guru!');
+}
+function update(){
+  $('c0').classList.toggle('done',S.observed);
+  $('c1').classList.toggle('done',S.front.length===2);
+  $('c2').classList.toggle('done',!!S.price);
+  $('c3').classList.toggle('done',!!S.pitch);
+  $('v1').textContent=S.front.length? S.front.map(p=>PRODUCTS[p].nama).join(', ') : '0/2 produk';
+  $('v2').textContent=S.price?PRICES[S.price].label:'-';
+  $('v3').textContent=S.pitch?PITCHES[S.pitch].short:'-';
+  const ready=S.observed&&S.front.length===2&&S.price&&S.pitch;
+  $('btnEval').disabled=!ready;
+  $('btnEval3d').setAttribute('color',ready?'#8b1a1a':'#6b5a3a');
+}
+function renderPersona(){
+  const p=S.persona;
+  if(!p){$('personaCard').innerHTML='<span class="muted">Menunggu pembeli datang…</span>';return;}
+  let h=`<b>Pembeli: ${p.nama}</b><br>`;
+  if(!S.observed) h+=`<span class="muted">Klik tokoh pembeli di depan Saudara untuk mengamati profil dan perilakunya.</span>`;
+  else h+=`<div>Asal: ${p.asal}</div><div>Tujuan: ${p.tujuan}</div><div>Anggaran: ${p.anggaran}</div><div style="margin-top:4px"><b>Perilaku teramati:</b> ${p.perilaku}</div>`;
+  h+=`<div style="margin-top:6px" class="muted">"${p.kalimat}"</div>`;
+  $('personaCard').innerHTML=h;
+}
+
+/* ================== GENERATIVE AI: PERSONA ================== */
+function validPersona(p){
+  const ids=Object.keys(PRODUCTS);
+  return p && p.nama && p.perilaku && Array.isArray(p.ideal_produk) && p.ideal_produk.length===2
+    && p.ideal_produk.every(x=>ids.includes(x)) && p.ideal_produk[0]!==p.ideal_produk[1]
+    && PRICES[p.ideal_harga] && PITCHES[p.ideal_sapaan];
+}
+async function genPersona(){
+  const prev=S.persona?S.persona.nama:'-';
+  const prompt=`Kamu adalah perancang skenario latihan untuk mata kuliah Bisnis Digital (topik: visual merchandising, strategi harga, personal selling) di sebuah lapau/toko oleh-oleh khas Minangkabau di Sumatera Barat.
+Buat SATU persona pembeli yang realistis dan BERBEDA dari "${prev}". Variasikan segmen (perantau, wisatawan domestik/mancanegara, reseller, mahasiswa, korporat, keluarga, dll.).
+Produk yang tersedia (gunakan id persis): rendang (Rendang Daging, Rp85.000, tahan lama), balado (Keripik Balado, Rp30.000, murah), songket (Kain Songket, Rp1.500.000, premium), kawa (Kopi Kawa Daun, Rp35.000, minuman khas dengan cerita sejarah).
+Strategi harga (id): normal, diskon, bundling. Sapaan (id): A = tonjolkan kualitas/ketahanan, B = tawarkan harga grosir, C = ajak mencoba & ceritakan asal-usul.
+Balas HANYA JSON valid tanpa teks lain, dengan format:
+{"nama":"","asal":"","tujuan":"","anggaran":"","perilaku":"(perilaku yang bisa diamati di toko, 1-2 kalimat, jangan sebut jawaban)","kalimat":"(ucapan pembeli saat masuk, boleh bahasa Minang ringan bila orang Minang, maks 15 kata)","ideal_produk":["id","id"],"ideal_harga":"id","ideal_sapaan":"A|B|C","alasan":"(alasan bisnis singkat mengapa pilihan ideal itu tepat)"}`;
+  const txt=await askAI(prompt);
+  const p=extractJSON(txt);
+  if(!validPersona(p))throw new Error('persona tidak valid');
+  return p;
+}
+async function newBuyer(){
+  S.persona=null;S.observed=false;S.front=[];S.price=null;S.pitch=null;
+  Object.keys(PRODUCTS).forEach(id=>move($('p-'+id),STOCK_POS[id]));
+  for(const j in priceBtn)priceBtn[j].setAttribute('color','#3b2418');
+  for(const j in pitchBtn)pitchBtn[j].setAttribute('color','#3b2418');
+  $('bubble').setAttribute('value','(pembeli sedang datang...)');
+  renderPersona();update();$('btnNew').disabled=true;
+  let p, fromAI=false;
+  try{ setBadge(false,'AI: membuat pembeli…'); p=await genPersona(); fromAI=true; S.aiOn=true; setBadge(true,'AI aktif'); }
+  catch(e){ console.warn('GenAI gagal, pakai persona bawaan:',e); p=FALLBACK[S.fbIdx++%FALLBACK.length]; S.aiOn=false; setBadge(false,'Mode offline'); }
+  p.fromAI=fromAI; S.persona=p;
+  $('bubble').setAttribute('value',p.kalimat);
+  const colors=['#2e6b8a','#5a7d2e','#7a3e8a','#a0522d','#2e4a8a','#8a6d2e'];
+  $('buyerBody').setAttribute('color',colors[Math.floor(Math.random()*colors.length)]);
+  renderPersona();update();$('btnNew').disabled=false;
+}
+
+/* ================== EVALUASI ================== */
+function ruleScore(){
+  const p=S.persona;
+  const prod=S.front.filter(x=>p.ideal_produk.includes(x)).length*20;   // maks 40
+  const price=S.price===p.ideal_harga?30:(S.price!=='normal'&&p.ideal_harga!=='normal'?15:0); // maks 30
+  const pitch=S.pitch===p.ideal_sapaan?30:0;                              // maks 30
+  return {prod,price,pitch,total:prod+price+pitch};
+}
+function ruleFeedback(sc){
+  const p=S.persona,f=[];
+  f.push(sc.prod===40?`Etalase sudah tepat: ${p.ideal_produk.map(x=>PRODUCTS[x].nama).join(' dan ')} paling relevan untuk segmen ini.`
+    :`Etalase belum sepenuhnya sesuai segmen. Produk yang paling relevan untuk ${p.nama}: ${p.ideal_produk.map(x=>PRODUCTS[x].nama).join(' dan ')}. Dalam visual merchandising, produk yang paling dibutuhkan segmen diletakkan setinggi mata.`);
+  f.push(sc.price===30?`Strategi harga "${PRICES[S.price].label}" tepat.`
+    :`Strategi harga yang lebih sesuai adalah "${PRICES[p.ideal_harga].label}". Ingat: diskon cocok untuk pembeli sensitif harga atau volume besar, bundling menaikkan nilai transaksi, dan produk premium sebaiknya tidak didiskon agar persepsi nilainya terjaga.`);
+  f.push(sc.pitch===30?`Sapaan sudah sesuai kebutuhan pembeli (personal selling yang tepat).`
+    :`Sapaan yang lebih tepat adalah "${PITCHES[p.ideal_sapaan].short}". Personal selling efektif bila pesan menjawab kebutuhan yang tampak dari perilaku pembeli.`);
+  return f;
+}
+async function aiFeedback(sc){
+  const p=S.persona;
+  const prompt=`Kamu dosen Bisnis Digital yang juga paham budaya dagang Minangkabau. Beri umpan balik kepada mahasiswa (sapa dengan "Saudara") atas keputusan dagangnya di simulasi toko oleh-oleh Minang.
+Persona pembeli: ${JSON.stringify({nama:p.nama,asal:p.asal,tujuan:p.tujuan,anggaran:p.anggaran,perilaku:p.perilaku})}
+Pilihan ideal (kunci): produk ${p.ideal_produk.join(', ')}, harga ${p.ideal_harga}, sapaan ${p.ideal_sapaan}. Alasan: ${p.alasan}
+Keputusan mahasiswa: etalase ${S.front.join(', ')}, harga ${S.price}, sapaan ${S.pitch} (${PITCHES[S.pitch].short}).
+Skor sistem (jangan diubah): ${sc.total}/100.
+Konsep yang dirujuk: visual merchandising, strategi harga (diskon/bundling/harga normal), personal selling.
+Balas HANYA JSON valid: {"umpan_balik":["poin etalase","poin harga","poin sapaan"],"pertanyaan_refleksi":"satu pertanyaan analitis untuk mahasiswa"}
+Setiap poin maks 35 kata, bahasa Indonesia formal. Jangan menulis pepatah Minang.`;
+  const j=extractJSON(await askAI(prompt));
+  if(!Array.isArray(j.umpan_balik)||!j.umpan_balik.length)throw new Error('format');
+  return j;
+}
+async function evaluate(){
+  if($('btnEval').disabled)return;
+  const sc=ruleScore();
+  const body=$('fbBody');
+  $('fb').style.display='flex';
+  body.innerHTML='<h1>Mengevaluasi…</h1><p>AI sedang menyusun umpan balik untuk Saudara.</p>';
+  let points, refl, src='Umpan balik dari Generative AI';
+  try{ const j=await aiFeedback(sc); points=j.umpan_balik; refl=j.pertanyaan_refleksi; }
+  catch(e){ points=ruleFeedback(sc); refl=`Perilaku apa dari ${S.persona.nama} yang seharusnya menjadi petunjuk utama keputusan Saudara?`; src='Umpan balik bawaan (mode offline)'; }
+  S.scores.push(sc.total);
+  const bar=(lbl,v,max)=>`<div style="font-size:13px">${lbl}: ${v}/${max}</div><div class="bar"><div style="width:${v/max*100}%"></div></div>`;
+  body.innerHTML=`<h1>Hasil Ronde ${S.round}</h1>
+    <div class="score">${sc.total}<span style="font-size:18px">/100</span></div>
+    ${bar('Visual merchandising (etalase)',sc.prod,40)}${bar('Strategi harga',sc.price,30)}${bar('Personal selling (sapaan)',sc.pitch,30)}
+    <h3>Catatan</h3><ol>${points.map(x=>`<li>${x}</li>`).join('')}</ol>
+    <h3>Pertanyaan Refleksi</h3><p>${refl}</p>
+    <div class="petatah">${PETATAH[S.round%PETATAH.length]}</div>
+    <div style="font-size:12px;opacity:.7">${src}. Skor dihitung oleh sistem berdasarkan kunci skenario.</div>
+    <button class="btn-main" id="btnNext">Lanjut ke Pembeli Berikutnya</button>
+    <button class="btn-sec" style="color:#8b1a1a;border-color:#8b1a1a" onclick="document.getElementById('fb').style.display='none'">Tutup dan tinjau lagi</button>`;
+  $('btnNext').onclick=()=>{$('fb').style.display='none';S.round++;$('round').textContent=S.round;newBuyer();};
+  $('hist').textContent='Skor: '+S.scores.join(' → ');
+}
+
+/* ================== INIT ================== */
+document.querySelector('a-scene').addEventListener('loaded',()=>{
+  buildProducts();buildBoards();buildUkiran();
+  $('buyer').addEventListener('click',onObserve);
+  $('btnEval3d').addEventListener('click',evaluate);
+  update();
+});
+$('btnStart').onclick=()=>{ $('intro').style.display='none'; newBuyer(); };
+$('btnEval').onclick=evaluate;
+$('btnNew').onclick=newBuyer;
+</script>
+</body>
+</html>

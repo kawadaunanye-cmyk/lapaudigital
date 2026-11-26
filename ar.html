@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lapau Digital – Mode AR Foto Produk</title>
+<script type="module" src="vendor/model-viewer.min.js"></script>
+<script src="https://js.puter.com/v2/" async></script>
+<style>
+  :root{--merah:#8b1a1a;--emas:#e0a526;--hitam:#1d1512;--krem:#fff7e6}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--krem);color:var(--hitam)}
+  header{background:var(--merah);color:var(--krem);padding:12px 16px;border-bottom:4px solid var(--emas);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  header h1{margin:0;font-size:18px}
+  header a{color:var(--emas);font-weight:600;text-decoration:none}
+  main{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;padding:16px;max-width:1150px;margin:auto}
+  @media(max-width:800px){main{grid-template-columns:1fr}}
+  model-viewer{width:100%;height:420px;background:radial-gradient(#fff,#f1dfb8);border-radius:14px;border:2px solid var(--emas)}
+  .panel{background:#fff;border-radius:14px;padding:14px;border:1px solid #e6d3a8}
+  .panel h2{margin:0 0 8px;font-size:16px;color:var(--merah)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+  .chip{border:1px solid var(--merah);background:#fff;color:var(--merah);border-radius:20px;padding:6px 12px;cursor:pointer;font:inherit;font-size:13px}
+  .chip.on{background:var(--merah);color:#fff}
+  button.main{background:var(--emas);color:var(--hitam);border:none;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;width:100%;font:inherit;font-weight:700}
+  button.main:disabled{opacity:.5;cursor:wait}
+  #arBtn{position:absolute;bottom:12px;right:12px;background:var(--merah);color:#fff;border:none;border-radius:20px;padding:10px 16px;font-weight:700}
+  .story{background:#fbe9c0;border-left:4px solid var(--emas);padding:8px 12px;border-radius:6px;font-size:14px}
+  #out{white-space:pre-wrap;font-size:14px;background:#fffaf0;border:1px dashed var(--emas);border-radius:8px;padding:10px;min-height:120px;margin-top:10px}
+  .tip{font-size:12px;opacity:.75;margin-top:6px}
+  ol{padding-left:18px;margin:4px 0;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Lapau Digital · Mode AR: Studio Foto Produk UMKM</h1>
+  <a href="index.html">← Kembali ke VR Showroom</a>
+</header>
+<main>
+  <section>
+    <div style="position:relative">
+      <model-viewer id="mv" src="models/rendang.glb" alt="Model 3D produk UMKM Minang" ar ar-modes="webxr scene-viewer quick-look"
+        camera-controls touch-action="pan-y" auto-rotate shadow-intensity="1" exposure="1.1" camera-orbit="30deg 70deg auto">
+        <button slot="ar-button" id="arBtn">📷 Lihat di Meja Saya (AR)</button>
+      </model-viewer>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <h2>Langkah Latihan</h2>
+      <ol>
+        <li>Pilih produk, lalu putar dan perbesar model 3D untuk menentukan <b>sudut foto terbaik</b>.</li>
+        <li>Tekan <b>Lihat di Meja Saya (AR)</b> di ponsel untuk menaruh produk di atas meja nyata, lalu ambil tangkapan layar sebagai simulasi foto katalog.</li>
+        <li>Pilih target pasar dan gaya bahasa, lalu minta <b>Generative AI</b> membuat deskripsi produk untuk marketplace.</li>
+        <li>Bandingkan hasil AI untuk target pasar yang berbeda. Apa yang berubah?</li>
+      </ol>
+      <div class="tip">AR berjalan di ponsel Android (Chrome) dan iPhone (Safari) yang mendukung AR. Di laptop, model tetap bisa diputar dan diperbesar.</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>1. Pilih Produk</h2>
+    <div class="chips" id="prodChips"></div>
+    <div class="story" id="story"></div>
+
+    <h2 style="margin-top:14px">2. Target Pasar</h2>
+    <div class="chips" id="segChips"></div>
+    <h2>3. Gaya Bahasa</h2>
+    <div class="chips" id="styleChips"></div>
+
+    <button class="main" id="gen">✨ Buat Deskripsi Marketplace dengan AI</button>
+    <div id="out">Hasil deskripsi produk akan muncul di sini.</div>
+    <div class="tip" id="src"></div>
+    <div class="tip">Periksa kembali hasil AI: pastikan klaim produk (berat, daya tahan, bahan) sesuai kenyataan sebelum dipakai berjualan.</div>
+  </section>
+</main>
+
+<script>
+const P = {
+  rendang:{nama:"Rendang Daging",file:"rendang.glb",harga:"Rp85.000 / toples 250 g",
+    cerita:"Rendang dimasak berjam-jam dengan santan dan bumbu hingga kering, sehingga tahan lama. Empat bahan utamanya (dagiang, karambia, lado, pemasak) sering dimaknai sebagai simbol niniak mamak, cadiak pandai, alim ulama, dan bundo kanduang."},
+  balado:{nama:"Keripik Balado",file:"keripik_balado.glb",harga:"Rp30.000 / bungkus 200 g",
+    cerita:"Keripik singkong tipis berlapis sambal cabai manis-pedas, salah satu oleh-oleh paling populer dari Sumatera Barat."},
+  songket:{nama:"Kain Songket",file:"songket.glb",harga:"Rp1.500.000 / helai",
+    cerita:"Kain tenun dengan benang emas atau perak. Nagari Pandai Sikek dan Silungkang dikenal sebagai sentra tenun songket Minangkabau, dan setiap motif punya nama serta makna."},
+  kawa:{nama:"Kopi Kawa Daun",file:"kawa_daun.glb",harga:"Rp35.000 / bungkus",
+    cerita:"Minuman seduhan daun kopi yang disajikan dalam tempurung kelapa. Sejarahnya sering dikaitkan dengan masa tanam paksa kopi, ketika biji kopi diambil penjajah dan rakyat menyeduh daunnya."}
+};
+const SEG = {wisatawan:"Wisatawan domestik",perantau:"Perantau Minang",reseller:"Reseller",mancanegara:"Wisatawan mancanegara",genz:"Mahasiswa / Gen Z"};
+const STY = {formal:"Formal & informatif",santai:"Santai & akrab",minang:"Sentuhan bahasa Minang"};
+let cur={prod:"rendang",seg:"wisatawan",sty:"santai"};
+
+function chips(id,obj,key,label=v=>v){
+  const box=document.getElementById(id);box.innerHTML='';
+  for(const k in obj){const b=document.createElement('button');b.className='chip'+(cur[key]===k?' on':'');b.textContent=label(obj[k]);
+    b.onclick=()=>{cur[key]=k;render();};box.appendChild(b);}
+}
+function render(){
+  chips('prodChips',P,'prod',v=>v.nama);chips('segChips',SEG,'seg');chips('styleChips',STY,'sty');
+  const p=P[cur.prod];
+  const mv=document.getElementById('mv'); if(!(mv.getAttribute('src')||'').endsWith(p.file)) mv.setAttribute('src','models/'+p.file);
+  document.getElementById('story').innerHTML=`<b>${p.nama}</b> · ${p.harga}<br>${p.cerita}`;
+}
+function aiText(r){if(typeof r==='string')return r;const c=r&&r.message&&r.message.content;if(Array.isArray(c))return c.map(x=>x.text||'').join('');return c||String(r);}
+function fallback(){
+  const p=P[cur.prod],s=SEG[cur.seg];
+  const hook={wisatawan:"Bawa pulang rasa asli Ranah Minang!",perantau:"Obat rindu kampuang halaman.",reseller:"Produk laris untuk etalase toko Saudara.",mancanegara:"An authentic taste of West Sumatra.",genz:"Wajib coba, sekali cobain nagih!"}[cur.seg];
+  return `JUDUL: ${p.nama} Asli Minangkabau – ${hook}
+
+DESKRIPSI:
+${p.cerita}
+Cocok untuk ${s.toLowerCase()}. Harga ${p.harga}.
+
+KEUNGGULAN:
+• Dibuat oleh UMKM lokal Sumatera Barat
+• Dikemas rapi dan aman untuk dikirim
+• Cocok sebagai oleh-oleh maupun hadiah
+
+TAGAR: #OlehOlehMinang #UMKMSumbar #${p.nama.replace(/\s/g,'')}
+
+TIPS FOTO: Gunakan cahaya alami dari samping, latar polos warna hangat, dan tampilkan produk dari sudut 45°.`;
+}
+document.getElementById('gen').onclick=async()=>{
+  const btn=document.getElementById('gen'),out=document.getElementById('out'),src=document.getElementById('src');
+  btn.disabled=true;out.textContent='AI sedang menulis…';
+  const p=P[cur.prod];
+  const prompt=`Kamu copywriter marketplace untuk UMKM oleh-oleh khas Minangkabau.
+Produk: ${p.nama}, harga ${p.harga}. Fakta budaya (gunakan, jangan menambah klaim yang tidak ada): ${p.cerita}
+Target pasar: ${SEG[cur.seg]}. Gaya bahasa: ${STY[cur.sty]}${cur.seg==='mancanegara'?' (tulis dalam bahasa Inggris)':''}.
+Tulis dalam format teks biasa (tanpa markdown):
+JUDUL: (maks 12 kata)
+DESKRIPSI: (maks 70 kata, sertakan nilai budaya Minang dari fakta di atas)
+KEUNGGULAN: (3 poin diawali •)
+TAGAR: (4 tagar)
+TIPS FOTO: (1 kalimat tips sudut/pencahayaan foto produk ini untuk target pasar tersebut)
+Jangan mengarang berat bersih, masa kedaluwarsa, sertifikasi, atau penghargaan.`;
+  try{
+    if(!(window.puter&&puter.ai))throw new Error('AI tidak tersedia');
+    const r=await Promise.race([puter.ai.chat(prompt),new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),30000))]);
+    out.textContent=aiText(r).trim(); src.textContent='Dihasilkan oleh Generative AI. Coba ganti target pasar untuk melihat perbedaannya.';
+  }catch(e){ out.textContent=fallback(); src.textContent='Mode offline: contoh deskripsi bawaan (AI tidak terhubung).'; }
+  btn.disabled=false;
+};
+render();
+</script>
+</body>
+</html>
